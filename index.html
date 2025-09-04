@@ -1,372 +1,2139 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Témoignage - Automatisation des analyses d'offres</title>
+    <title>Arbre de Décision Simplifié</title>
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #375B6A;
-            background: linear-gradient(135deg, #6C8A99 0%, #375B6A 100%);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .logo-placeholder {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #375B6A;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .header h1 {
-            color: #375B6A;
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-            font-weight: 300;
-        }
-
-        .header .subtitle {
-            color: #FF9C00;
-            font-size: 1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            font-weight: 500;
-        }
-
-        .testimonial-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            margin-bottom: 1.5rem;
-            position: relative;
+            background: #f8f9fa;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .testimonial-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #52B264, #24A3dA, #FF9C00);
+        .container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: white;
         }
 
-        .quote-icon {
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #ffffff;
+            border: 2px solid #e9ecef;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background: #f8f9fa;
+            border-color: #6c757d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .edit-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            display: none;
+            z-index: 1002;
+        }
+
+        .edit-panel.active {
+            display: block;
+        }
+
+        .edit-group {
+            margin-bottom: 15px;
+        }
+
+        .edit-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .edit-group input, .edit-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .edit-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .color-option:hover, .color-option.selected {
+            border-color: #495057;
+            transform: scale(1.1);
+        }
+
+        .edit-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .edit-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn.primary { background: #007bff; color: white; }
+        .edit-btn.success { background: #28a745; color: white; }
+        .edit-btn.danger { background: #dc3545; color: white; }
+
+        .edit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .link-edit-panel {
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1003;
             display: none;
         }
 
-        .testimonial-text {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #375B6A;
-            margin-bottom: 1.5rem;
-        }
+        .link-edit-panel.active { display: block; }
 
-        .individual-testimonial {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid rgba(108, 138, 153, 0.2);
-        }
-
-        .individual-testimonial:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .testimonial-author {
-            font-weight: 600;
-            color: #FF9C00;
-            font-size: 1rem;
-            margin-top: 1rem;
-            text-align: right;
-            font-style: italic;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #24A3dA 0%, #375B6A 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 15px;
-            text-align: center;
-            transition: transform 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .impact-section {
-            background: linear-gradient(135deg, #52B264, #24A3dA);
-            color: white;
-            padding: 2rem;
-            border-radius: 20px;
-            text-align: center;
-            margin: 1.5rem 0;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        }
-
-        .impact-title {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            font-weight: 300;
-            color: white;
-        }
-
-        .impact-comparison {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 1.5rem;
-            align-items: center;
-            margin: 1.5rem 0;
-        }
-
-        .before, .after {
-            background: rgba(255,255,255,0.1);
-            padding: 1.5rem;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-
-        .arrow {
-            font-size: 2rem;
-            color: #fff;
-        }
-
-        .time-value {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .methodology {
-            background: rgba(108, 138, 153, 0.15);
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin: 1rem 0;
-            border: 1px solid rgba(108, 138, 153, 0.3);
-        }
-
-        .methodology h3 {
-            color: white;
-            margin-bottom: 0.8rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .methodology p {
-            color: #FF9C00;
-            font-weight: 500;
-            margin-bottom: 0.8rem;
-            font-size: 0.9rem;
-        }
-
-        .methodology-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.8rem;
-            margin-top: 0.8rem;
-        }
-
-        .detail-item {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 0.8rem;
+        .zoom-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
             border-radius: 8px;
-            border-left: 4px solid #52B264;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+            font-size: 14px;
+            color: #495057;
         }
 
-        .detail-number {
-            font-weight: bold;
-            color: #375B6A;
-            font-size: 1rem;
+        .minimap {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1005;
         }
 
-        .footer {
+        .minimap-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .minimap-node {
+            position: absolute;
+            background: #007bff;
+            border-radius: 2px;
+            min-width: 4px;
+            min-height: 3px;
+        }
+
+        .minimap-connection {
+            position: absolute;
+            background: #6c757d;
+            height: 1px;
+            transform-origin: left center;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            border: 2px solid #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            cursor: move;
+        }
+
+        .minimap-scrollbar-h {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: #e9ecef;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .minimap-scrollbar-v {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 12px;
+            width: 12px;
+            background: #e9ecef;
+            border-left: 1px solid #dee2e6;
+        }
+
+        .minimap-thumb-h {
+            position: absolute;
+            height: 100%;
+            background: #6c757d;
+            border-radius: 6px;
+            cursor: pointer;
+            min-width: 20px;
+        }
+
+        .minimap-thumb-v {
+            position: absolute;
+            width: 100%;
+            background: #6c757d;
+            border-radius: 6px;
+            cursor: pointer;
+            min-height: 20px;
+        }
+
+        .minimap-thumb-h:hover, .minimap-thumb-v:hover {
+            background: #495057;
+        }
+
+        #tree-container {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            position: relative;
+            overflow: visible;
+        }
+
+        #navigation-area {
+            position: absolute;
+            cursor: grab;
+            z-index: 1;
+            pointer-events: all;
+        }
+
+        #navigation-area:active {
+            cursor: grabbing;
+        }
+
+        #tree-container:active { cursor: grabbing; }
+
+        .node {
+            position: absolute;
+            background: #6c757d;
+            border: 2px solid #495057;
+            border-radius: 8px;
+            padding: 12px 16px;
+            min-width: 100px;
             text-align: center;
-            margin-top: 3rem;
-            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
             color: white;
-            font-style: italic;
-            background: rgba(55, 91, 106, 0.3);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
+            word-wrap: break-word;
+            max-width: 200px;
         }
 
-        .footer p:first-child {
+        .node.has-link {
+            border-style: dashed;
+            border-width: 3px;
+        }
+
+        .node.has-link::after {
+            content: "🔗";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #28a745;
             color: white;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .footer p:last-child {
-            color: rgba(255, 255, 255, 0.8);
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .testimonial-card {
-                padding: 2rem;
-            }
-            
-            .impact-comparison {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
-            .arrow {
-                transform: rotate(90deg);
-            }
+        .node.selected {
+            border-color: #007bff;
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #007bff;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1004;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .node.selected .resize-handle {
+            opacity: 1;
+        }
+
+        .resize-handle.top-left { top: -6px; left: -6px; cursor: nw-resize; }
+        .resize-handle.top-right { top: -6px; right: -6px; cursor: ne-resize; }
+        .resize-handle.bottom-left { bottom: -6px; left: -6px; cursor: sw-resize; }
+        .resize-handle.bottom-right { bottom: -6px; right: -6px; cursor: se-resize; }
+
+        .connection {
+            position: absolute;
+            background: #6c757d;
+            transform-origin: left center;
+            height: 2px;
+            border-radius: 1px;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .connection:hover {
+            height: 4px;
+            opacity: 1;
+            background: #007bff;
+        }
+
+        .connection.selected {
+            background: #dc3545 !important;
+            height: 3px;
+            opacity: 1;
+        }
+
+        .link-mode { background: #007bff !important; color: white !important; }
+        .linkable-node { border-color: #28a745 !important; border-width: 3px !important; box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3) !important; }
+        .zoom-select-mode { background: #ffc107 !important; color: #212529 !important; }
+
+        .selection-box {
+            position: fixed !important;
+            border: 2px dashed #007bff;
+            background: rgba(0, 123, 255, 0.1);
+            pointer-events: none;
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="logo-placeholder">NALDEO</div>
-            <h1>L'Excellence Technique au Service du Climat</h1>
-            <p class="subtitle">Témoignage d'un collaborateur sur l'optimisation des processus d'analyse</p>
-        </header>
+        <div class="controls">
+            <button class="btn" onclick="zoomIn()">🔍+ Zoom +</button>
+            <button class="btn" onclick="zoomOut()">🔍- Zoom -</button>
+            <button class="btn" onclick="zoom100()">Zoom 100%</button>
+            <button class="btn" onclick="zoomToFit()">📐 Ajuster</button>
+            <button class="btn" onclick="toggleZoomSelect()" id="zoomSelectBtn">🔲 Sélection Zoom</button>
+            <button class="btn" onclick="resetView()">🏠 Centrer</button>
+            <button class="btn" onclick="addNode()">➕ Ajouter Nœud</button>
+            <button class="btn" onclick="toggleLinkMode()" id="linkBtn">🔗 Lier Nœuds</button>
+            <button class="btn" onclick="undo()" id="undoBtn">↶ Annuler</button>
+            <button class="btn" onclick="exportTree()">💾 Exporter</button>
+            <button class="btn" onclick="saveToHTML()">📄 Sauver dans HTML</button>
+            <button class="btn" onclick="importTree()">📁 Importer</button>
+        </div>
 
-        <div class="testimonial-card">
-            <div class="quote-icon">"</div>
+        <div class="edit-panel" id="editPanel">
+            <h3 style="margin-top: 0; color: #495057;">Éditer le Nœud</h3>
             
-            <div class="individual-testimonial">
-                <div class="testimonial-text">
-                    Dans le cadre des analyses d'offres pour un réseau de chaleur, je devais comparer manuellement les prix proposés par les candidats en recopiant les montants issus de leur DPGF dans un tableau de synthèse.
-                    <br><br>
-                    La méthodologie consistait à construire, pour chaque lot, un fichier Excel comprenant entre 8 et 40 onglets selon la structure du réseau (tronçons et sous-stations), puis à y coller les colonnes de prix de chaque entreprise. Avec 5 lots à analyser et 3 phases d'analyse (initiale + 2 tours de négociation), cela représentait en moyenne <strong>2 160 copier-coller à effectuer manuellement</strong>.
-                    <br><br>
-                    Grâce à la macro Excel, la création et le remplissage du fichier de synthèse pour une phase d'analyse prend environ <strong>10 minutes, contre une demi-journée manuellement</strong>. À l'échelle du projet, cela représentait environ 7,5 jours de travail uniquement consacrés au copier-coller, réduits désormais à 2h30.
-                </div>
-                <div class="testimonial-author">Manon - Toulouse</div>
+            <div class="edit-group">
+                <label>Texte :</label>
+                <textarea id="nodeText" placeholder="Entrez le texte du nœud..."></textarea>
             </div>
 
-            <div class="individual-testimonial">
-                <div class="testimonial-text">
-                    J'ai été agréablement surprise par la facilité de prise en main de l'application. Le résultat obtenu démontre son fort potentiel et sa capacité à s'adapter au plus près du contexte de chaque client.
+            <div class="edit-group">
+                <label>Couleur :</label>
+                <div class="color-picker">
+                    <div class="color-option" style="background: #6c757d" data-color="#6c757d"></div>
+                    <div class="color-option" style="background: #007bff" data-color="#007bff"></div>
+                    <div class="color-option" style="background: #28a745" data-color="#28a745"></div>
+                    <div class="color-option" style="background: #dc3545" data-color="#dc3545"></div>
+                    <div class="color-option" style="background: #ffc107" data-color="#ffc107"></div>
+                    <div class="color-option" style="background: #6f42c1" data-color="#6f42c1"></div>
+                    <div class="color-option" style="background: #fd7e14" data-color="#fd7e14"></div>
+                    <div class="color-option" style="background: #20c997" data-color="#20c997"></div>
                 </div>
-                <div class="testimonial-author">Ludivine - Lyon</div>
+                <input type="text" id="customColor" placeholder="#000000" maxlength="7">
+            </div>
+
+            <div class="edit-group">
+                <label>Taille : <span id="sizeValue">166%</span></label>
+                <input type="range" id="sizeSlider" min="50" max="200" value="100">
+            </div>
+
+            <div class="edit-group">
+                <label>Lien vers page HTML :</label>
+                <input type="text" id="nodeLink" placeholder="chemin/vers/page.html ou URL complète">
+                <small style="color: #6c757d; font-size: 12px;">
+                    Exemples: detail.html, ../autre/page.html, https://example.com
+                </small>
+            </div>
+
+            <div class="edit-buttons">
+                <button class="edit-btn success" onclick="saveNode()">💾 Sauvegarder</button>
+                <button class="edit-btn primary" onclick="addChildNode()">➕ Ajouter Enfant</button>
+                <button class="edit-btn danger" onclick="deleteNode()">🗑️ Supprimer</button>
             </div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">5</div>
-                <div class="stat-label">Lots à analyser</div>
+        <div class="link-edit-panel" id="linkEditPanel">
+            <h4 style="margin-top: 0; color: #495057;">Éditer le Lien</h4>
+            <div class="edit-group">
+                <label>Couleur du lien :</label>
+                <div class="color-picker">
+                    <div class="color-option" style="background: #6c757d" data-color="#6c757d"></div>
+                    <div class="color-option" style="background: #007bff" data-color="#007bff"></div>
+                    <div class="color-option" style="background: #28a745" data-color="#28a745"></div>
+                    <div class="color-option" style="background: #dc3545" data-color="#dc3545"></div>
+                </div>
+                <input type="text" id="linkCustomColor" placeholder="#000000" maxlength="7">
             </div>
-            <div class="stat-card">
-                <div class="stat-number">6</div>
-                <div class="stat-label">Candidats</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">3</div>
-                <div class="stat-label">Phases d'analyse</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">2 160</div>
-                <div class="stat-label">Copier-coller évités</div>
-            </div>
-        </div>
-
-        <div class="impact-section">
-            <h2 class="impact-title">Impact de l'automatisation</h2>
-            <div class="impact-comparison">
-                <div class="before">
-                    <div class="time-value">7,5 jours</div>
-                    <div>Temps initial<br>de traitement manuel</div>
-                </div>
-                <div class="arrow">→</div>
-                <div class="after">
-                    <div class="time-value">2h30</div>
-                    <div>Temps optimisé<br>avec la macro</div>
-                </div>
-            </div>
-            <p><strong>Gain de productivité : 96% de temps économisé</strong></p>
-        </div>
-
-        <div class="methodology">
-            <h3>Méthodologie détaillée</h3>
-            <p>Comparaison des offres pour réseaux de chaleur avec structure complexe</p>
-            <div class="methodology-details">
-                <div class="detail-item">
-                    <div class="detail-number">8 à 40 onglets</div>
-                    <div>par fichier selon la structure du réseau</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-number">Tronçons + Sous-stations</div>
-                    <div>éléments à analyser</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-number">10 min vs 4h</div>
-                    <div>par phase d'analyse</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-number">DPGF</div>
-                    <div>source des données prix</div>
-                </div>
+            <div class="edit-buttons">
+                <button class="edit-btn success" onclick="saveLinkColor()">💾 Sauvegarder</button>
+                <button class="edit-btn danger" onclick="deleteLink()">🗑️ Supprimer</button>
             </div>
         </div>
 
-        <div class="footer">
-            <p>« L'innovation technique au service de l'efficacité opérationnelle »</p>
-            <p><strong>Naldeo Group</strong> - Bureau d'étude spécialisé dans la transition climatique et environnementale</p>
+        <div class="zoom-info" id="zoomInfo">Zoom: 38%</div>
+        
+        <div class="minimap">
+            <div class="minimap-content" id="minimapContent">
+                <div class="minimap-viewport" id="minimapViewport" style="left: 42.5418px; top: 16.5966px; width: 200px; height: 130.488px;"></div>
+            <div class="minimap-connection" style="left: 18.4385px; top: 4.8058px; width: 21.6756px; transform: rotate(128.972deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 18.4385px; top: 4.8058px; width: 19.3453px; transform: rotate(60.8839deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 71.6145px; top: 20.9908px; width: 13.1625px; transform: rotate(103.556deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 71.6145px; top: 20.9908px; width: 18.42px; transform: rotate(135.808deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 71.6145px; top: 20.9908px; width: 26.2071px; transform: rotate(150.806deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 71.6145px; top: 20.9908px; width: 22.2795px; transform: rotate(34.9627deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 71.6145px; top: 20.9908px; width: 15.6628px; transform: rotate(54.5587deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 71.6145px; top: 20.9908px; width: 29.5958px; transform: rotate(25.3879deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 119.046px; top: 19.5702px; width: 20.9964px; transform: rotate(42.1619deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 119.046px; top: 19.5702px; width: 15.5815px; transform: rotate(61.7209deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 119.046px; top: 19.5702px; width: 14.239px; transform: rotate(91.9851deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 119.046px; top: 19.5702px; width: 16.9164px; transform: rotate(126.013deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 152.134px; top: 19.4486px; width: 13.9472px; transform: rotate(84.8343deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 152.134px; top: 19.4486px; width: 15.4984px; transform: rotate(116.33deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 152.134px; top: 19.4486px; width: 16.907px; transform: rotate(55.2438deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 180.378px; top: 19.83px; width: 14.5328px; transform: rotate(59.9192deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 180.378px; top: 19.83px; width: 12.581px; transform: rotate(91.6835deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 180.378px; top: 19.83px; width: 15.7594px; transform: rotate(124.805deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 180.378px; top: 19.83px; width: 19.3554px; transform: rotate(40.0489deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 27.8515px; top: 21.7066px; width: 13.877px; transform: rotate(60.7827deg); background: rgb(108, 117, 125);"></div><div class="minimap-connection" style="left: 27.8515px; top: 21.7066px; width: 13.6483px; transform: rotate(118.427deg); background: rgb(108, 117, 125);"></div><div class="minimap-node" style="left: 18.4385px; top: 4.8058px; width: 12px; height: 8px; background: rgb(0, 35, 71);"></div><div class="minimap-node" style="left: 4.8058px; top: 21.6575px; width: 12px; height: 8px; background: rgb(111, 66, 193);"></div><div class="minimap-node" style="left: 27.8515px; top: 21.7066px; width: 12px; height: 8px; background: rgb(0, 79, 163);"></div><div class="minimap-node" style="left: 71.6145px; top: 20.9908px; width: 11.46px; height: 7.64px; background: rgb(162, 74, 2);"></div><div class="minimap-node" style="left: 68.5294px; top: 33.7866px; width: 7.98px; height: 5.32px; background: rgb(207, 94, 2);"></div><div class="minimap-node" style="left: 58.4073px; top: 33.8307px; width: 7.92px; height: 5.28px; background: rgb(207, 94, 2);"></div><div class="minimap-node" style="left: 48.7365px; top: 33.7738px; width: 7.68px; height: 5.12px; background: rgb(207, 94, 2);"></div><div class="minimap-node" style="left: 89.8731px; top: 33.7579px; width: 7.02px; height: 4.68px; background: rgb(207, 94, 2);"></div><div class="minimap-node" style="left: 80.6969px; top: 33.7514px; width: 7.8px; height: 5.2px; background: rgb(207, 94, 2);"></div><div class="minimap-node" style="left: 98.3522px; top: 33.6798px; width: 6.84px; height: 4.56px; background: rgb(207, 94, 2);"></div><div class="minimap-node" style="left: 119.046px; top: 19.5702px; width: 8.7px; height: 5.8px; background: rgb(163, 122, 0);"></div><div class="minimap-node" style="left: 134.609px; top: 33.6636px; width: 7.44px; height: 4.96px; background: rgb(209, 157, 0);"></div><div class="minimap-node" style="left: 126.428px; top: 33.292px; width: 6px; height: 4px; background: rgb(209, 157, 0);"></div><div class="minimap-node" style="left: 118.552px; top: 33.8007px; width: 7.56px; height: 5.04px; background: rgb(209, 157, 0);"></div><div class="minimap-node" style="left: 109.099px; top: 33.2536px; width: 6px; height: 4px; background: rgb(209, 157, 0);"></div><div class="minimap-node" style="left: 152.134px; top: 19.4486px; width: 9.06px; height: 6.04px; background: rgb(139, 24, 36);"></div><div class="minimap-node" style="left: 153.39px; top: 33.3392px; width: 7.08px; height: 4.72px; background: rgb(220, 53, 69);"></div><div class="minimap-node" style="left: 145.26px; top: 33.3392px; width: 6.78px; height: 4.52px; background: rgb(220, 53, 69);"></div><div class="minimap-node" style="left: 161.772px; top: 33.3392px; width: 7.14px; height: 4.76px; background: rgb(220, 53, 69);"></div><div class="minimap-node" style="left: 180.378px; top: 19.83px; width: 9.96px; height: 6.64px; background: rgb(23, 94, 40);"></div><div class="minimap-node" style="left: 187.662px; top: 32.4055px; width: 6px; height: 4px; background: rgb(40, 167, 69);"></div><div class="minimap-node" style="left: 180.008px; top: 32.4055px; width: 6px; height: 4px; background: rgb(40, 167, 69);"></div><div class="minimap-node" style="left: 171.382px; top: 32.77px; width: 6px; height: 4px; background: rgb(40, 167, 69);"></div><div class="minimap-node" style="left: 195.194px; top: 32.284px; width: 6px; height: 4px; background: rgb(40, 167, 69);"></div><div class="minimap-node" style="left: 34.6252px; top: 33.8181px; width: 9px; height: 6px; background: rgb(0, 123, 255);"></div><div class="minimap-node" style="left: 21.3544px; top: 33.7092px; width: 8.94784px; height: 5.96523px; background: rgb(0, 123, 255);"></div></div>
+            <div class="minimap-scrollbar-h">
+                <div class="minimap-thumb-h" id="minimapThumbH" style="width: 200px; left: 0px;"></div>
+            </div>
+            <div class="minimap-scrollbar-v">
+                <div class="minimap-thumb-v" id="minimapThumbV" style="height: 150px; top: 0px;"></div>
+            </div>
         </div>
+        
+        <div id="tree-container" style="transform: translate(-262.254px, 43.741px) scale(0.379711);"><div class="connection" id="connection-conn_0_1" style="left: 239.12px; top: -340.54px; width: 451.029px; transform: rotate(128.972deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_0_2" style="left: 239.12px; top: -340.54px; width: 402.541px; transform: rotate(60.8839deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_205_206" style="left: 1345.62px; top: -3.76022px; width: 273.889px; transform: rotate(103.556deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_205_207" style="left: 1345.62px; top: -3.76022px; width: 383.286px; transform: rotate(135.808deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_205_212" style="left: 1345.62px; top: -3.76022px; width: 545.322px; transform: rotate(150.806deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_205_213" style="left: 1345.62px; top: -3.76022px; width: 463.596px; transform: rotate(34.9627deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_205_214" style="left: 1345.62px; top: -3.76022px; width: 325.915px; transform: rotate(54.5587deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_205_215" style="left: 1345.62px; top: -3.76022px; width: 615.836px; transform: rotate(25.3879deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_216_217" style="left: 2332.57px; top: -33.3194px; width: 436.897px; transform: rotate(42.1619deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_216_218" style="left: 2332.57px; top: -33.3194px; width: 324.222px; transform: rotate(61.7209deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_216_219" style="left: 2332.57px; top: -33.3194px; width: 296.289px; transform: rotate(91.9851deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_216_220" style="left: 2332.57px; top: -33.3194px; width: 352px; transform: rotate(126.013deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_221_222" style="left: 3021.08px; top: -35.8498px; width: 290.216px; transform: rotate(84.8343deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_221_223" style="left: 3021.08px; top: -35.8498px; width: 322.494px; transform: rotate(116.33deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_221_224" style="left: 3021.08px; top: -35.8498px; width: 351.805px; transform: rotate(55.2438deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_225_226" style="left: 3608.78px; top: -27.914px; width: 302.402px; transform: rotate(59.9192deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_225_227" style="left: 3608.78px; top: -27.914px; width: 261.787px; transform: rotate(91.6835deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_225_228" style="left: 3608.78px; top: -27.914px; width: 327.925px; transform: rotate(124.805deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_225_229" style="left: 3608.78px; top: -27.914px; width: 402.75px; transform: rotate(40.0489deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_2_230" style="left: 434.99px; top: 11.1338px; width: 288.756px; transform: rotate(60.7827deg); background: rgb(108, 117, 125);"></div><div class="connection" id="connection-conn_2_231" style="left: 434.99px; top: 11.1338px; width: 283.997px; transform: rotate(118.427deg); background: rgb(108, 117, 125);"></div><div class="node has-link" id="node-0" style="left: 189.12px; top: -360.54px; background: rgb(0, 35, 71); transform: scale(2);">Domestique<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-1" style="left: -94.5506px; top: -9.88646px; background: rgb(111, 66, 193); transform: scale(2);">Habitat Individuel<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-2" style="left: 384.99px; top: -8.86615px; background: rgb(0, 79, 163); transform: scale(2);">Habitat Collectif<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node has-link" id="node-205" style="left: 1295.62px; top: -23.7602px; background: rgb(162, 74, 2); transform: scale(1.91);">Professionnel<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-206" style="left: 1231.42px; top: 242.499px; background: rgb(207, 94, 2); transform: scale(1.33);">Agriculture \ Pêche<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-207" style="left: 1020.8px; top: 243.415px; background: rgb(207, 94, 2); transform: scale(1.32);">Industriels<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-212" style="left: 819.567px; top: 242.231px; background: rgb(207, 94, 2); transform: scale(1.28);">BTP Chantiers<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-213" style="left: 1675.55px; top: 241.901px; background: rgb(207, 94, 2); transform: scale(1.17);">Tourisme<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-214" style="left: 1484.61px; top: 241.766px; background: rgb(207, 94, 2); transform: scale(1.3);">Alimentaire<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-215" style="left: 1851.98px; top: 240.276px; background: rgb(207, 94, 2); transform: scale(1.14);">Autres<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node has-link" id="node-216" style="left: 2282.57px; top: -53.3194px; background: rgb(163, 122, 0); transform: scale(1.45);">Collectivité, Service Grand Public et administration<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-217" style="left: 2606.42px; top: 239.938px; background: rgb(209, 157, 0); transform: scale(1.24);">Administrations<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-218" style="left: 2436.18px; top: 232.207px; background: rgb(209, 157, 0); transform: scale(1);">Services Grand Public<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-219" style="left: 2272.31px; top: 242.791px; background: rgb(209, 157, 0); transform: scale(1.26);">Municipaux<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-220" style="left: 2075.61px; top: 231.407px; background: rgb(209, 157, 0); transform: scale(1);">Communauté d'Agglomération<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node has-link" id="node-221" style="left: 2971.08px; top: -55.8498px; background: rgb(139, 24, 36); transform: scale(1.51);">Santé<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-222" style="left: 2997.21px; top: 233.188px; background: rgb(220, 53, 69); transform: scale(1.18);">Clinique<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-223" style="left: 2828.04px; top: 233.188px; background: rgb(220, 53, 69); transform: scale(1.13);">Hôpital<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-224" style="left: 3171.64px; top: 233.188px; background: rgb(220, 53, 69); transform: scale(1.19);">Autres<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node has-link" id="node-225" style="left: 3558.78px; top: -47.914px; background: rgb(23, 94, 40); transform: scale(1.66);">Enseignement<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-226" style="left: 3710.35px; top: 213.76px; background: rgb(40, 167, 69); transform: scale(1);">Secondaire<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-227" style="left: 3551.09px; top: 213.76px; background: rgb(40, 167, 69); transform: scale(1);">Elémentaire / Maternelle <div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-228" style="left: 3371.61px; top: 221.344px; background: rgb(40, 167, 69); transform: scale(1);">Pré-scolaire<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-229" style="left: 3867.09px; top: 211.232px; background: rgb(40, 167, 69); transform: scale(1);">Autres<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-230" style="left: 525.938px; top: 243.153px; background: rgb(0, 123, 255); transform: scale(1.5);">Bailleurs sociaux<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div><div class="node" id="node-231" style="left: 249.796px; top: 240.888px; background: rgb(0, 123, 255); transform: scale(1.49131);">Copropriétés<div class="resize-handle top-left"></div><div class="resize-handle top-right"></div><div class="resize-handle bottom-left"></div><div class="resize-handle bottom-right"></div></div></div>
     </div>
-</body>
-</html>
+
+    <input type="file" id="fileInput" accept=".json" style="display: none;">
+
+    <script>
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;  
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let selectedNode = null;
+        let selectedLink = null;
+        let nodeIdCounter = 0;
+        let isLinkMode = false;
+        let linkingFrom = null;
+        let isZoomSelectMode = false;
+        let isSelecting = false;
+        let selectionStart = { x: 0, y: 0 };
+        let selectionBox = null;
+        let history = [];
+        let historyIndex = -1;
+
+        const treeData = {
+          "nodes": [
+                    {
+                              "id": 0,
+                              "text": "Domestique",
+                              "color": "#002347",
+                              "x": 189.12041591514816,
+                              "y": -360.5402636481569,
+                              "size": 200,
+                              "link": "Arbre Segmentation Domestique.html"
+                    },
+                    {
+                              "id": 1,
+                              "text": "Habitat Individuel",
+                              "color": "#6f42c1",
+                              "x": -94.55063366617617,
+                              "y": -9.88646110784152,
+                              "size": 200,
+                              "link": ""
+                    },
+                    {
+                              "id": 2,
+                              "text": "Habitat Collectif",
+                              "color": "#004FA3",
+                              "x": 384.9895546305614,
+                              "y": -8.866152438828273,
+                              "size": 200,
+                              "link": ""
+                    },
+                    {
+                              "id": 205,
+                              "text": "Professionnel",
+                              "color": "#A24A02",
+                              "x": 1295.618366393335,
+                              "y": -23.760221733077238,
+                              "size": 191,
+                              "link": "Arbre Segmentation Professionnel.html"
+                    },
+                    {
+                              "id": 206,
+                              "text": "Agriculture \\ Pêche",
+                              "color": "#CF5E02",
+                              "x": 1231.4216562453355,
+                              "y": 242.49868722086313,
+                              "size": 133,
+                              "link": ""
+                    },
+                    {
+                              "id": 207,
+                              "text": "Industriels",
+                              "color": "#CF5E02",
+                              "x": 1020.7987289625747,
+                              "y": 243.41492607930348,
+                              "size": 132,
+                              "link": ""
+                    },
+                    {
+                              "id": 212,
+                              "text": "BTP Chantiers",
+                              "color": "#CF5E02",
+                              "x": 819.5668326457463,
+                              "y": 242.2311288384166,
+                              "size": 128,
+                              "link": ""
+                    },
+                    {
+                              "id": 213,
+                              "text": "Tourisme",
+                              "color": "#CF5E02",
+                              "x": 1675.546867493419,
+                              "y": 241.90063798918442,
+                              "size": 117,
+                              "link": ""
+                    },
+                    {
+                              "id": 214,
+                              "text": "Alimentaire",
+                              "color": "#CF5E02",
+                              "x": 1484.6063238807656,
+                              "y": 241.76629211551278,
+                              "size": 130,
+                              "link": ""
+                    },
+                    {
+                              "id": 215,
+                              "text": "Autres",
+                              "color": "#CF5E02",
+                              "x": 1851.9803234793317,
+                              "y": 240.27618628265466,
+                              "size": 114,
+                              "link": ""
+                    },
+                    {
+                              "id": 216,
+                              "text": "Collectivité, Service Grand Public et administration",
+                              "color": "#A37A00",
+                              "x": 2282.5732180995474,
+                              "y": -53.31937976909143,
+                              "size": 145,
+                              "link": "Arbre Segmentation Collectivités.html"
+                    },
+                    {
+                              "id": 217,
+                              "text": "Administrations",
+                              "color": "#D19D00",
+                              "x": 2606.4237002709183,
+                              "y": 239.93783894348232,
+                              "size": 124,
+                              "link": ""
+                    },
+                    {
+                              "id": 218,
+                              "text": "Services Grand Public",
+                              "color": "#D19D00",
+                              "x": 2436.1791534533418,
+                              "y": 232.20683939732115,
+                              "size": 100,
+                              "link": ""
+                    },
+                    {
+                              "id": 219,
+                              "text": "Municipaux",
+                              "color": "#D19D00",
+                              "x": 2272.3100647356614,
+                              "y": 242.79138543466155,
+                              "size": 126,
+                              "link": ""
+                    },
+                    {
+                              "id": 220,
+                              "text": "Communauté d'Agglomération",
+                              "color": "#D19D00",
+                              "x": 2075.607461223512,
+                              "y": 231.40741401698062,
+                              "size": 100,
+                              "link": ""
+                    },
+                    {
+                              "id": 221,
+                              "text": "Santé",
+                              "color": "#8B1824",
+                              "x": 2971.0818740645154,
+                              "y": -55.84977074975221,
+                              "size": 151,
+                              "link": "Arbre Segmentation Enseignement et Santé.html"
+                    },
+                    {
+                              "id": 222,
+                              "text": "Clinique",
+                              "color": "#DC3545",
+                              "x": 2997.2120971766053,
+                              "y": 233.18773392035143,
+                              "size": 118,
+                              "link": ""
+                    },
+                    {
+                              "id": 223,
+                              "text": "Hôpital",
+                              "color": "#DC3545",
+                              "x": 2828.0440342599386,
+                              "y": 233.18773392035143,
+                              "size": 113,
+                              "link": ""
+                    },
+                    {
+                              "id": 224,
+                              "text": "Autres",
+                              "color": "#DC3545",
+                              "x": 3171.640966671826,
+                              "y": 233.18773392035143,
+                              "size": 119,
+                              "link": ""
+                    },
+                    {
+                              "id": 225,
+                              "text": "Enseignement",
+                              "color": "#175E28",
+                              "x": 3558.7840570847916,
+                              "y": -47.91402224952516,
+                              "size": 166,
+                              "link": "Arbre Segmentation Enseignement et Santé.html"
+                    },
+                    {
+                              "id": 226,
+                              "text": "Secondaire",
+                              "color": "#28A745",
+                              "x": 3710.3540928161738,
+                              "y": 213.760000489131,
+                              "size": 100,
+                              "link": ""
+                    },
+                    {
+                              "id": 227,
+                              "text": "Elémentaire / Maternelle ",
+                              "color": "#28A745",
+                              "x": 3551.0929511031463,
+                              "y": 213.76000048913102,
+                              "size": 100,
+                              "link": ""
+                    },
+                    {
+                              "id": 228,
+                              "text": "Pré-scolaire",
+                              "color": "#28A745",
+                              "x": 3371.608172347194,
+                              "y": 221.34386438022756,
+                              "size": 100,
+                              "link": ""
+                    },
+                    {
+                              "id": 229,
+                              "text": "Autres",
+                              "color": "#28A745",
+                              "x": 3867.087279898836,
+                              "y": 211.23204585876547,
+                              "size": 100,
+                              "link": ""
+                    },
+                    {
+                              "id": 230,
+                              "text": "Bailleurs sociaux",
+                              "color": "#007bff",
+                              "x": 525.9380468412799,
+                              "y": 243.15281871270727,
+                              "size": 150,
+                              "link": ""
+                    },
+                    {
+                              "id": 231,
+                              "text": "Copropriétés",
+                              "color": "#007bff",
+                              "x": 249.79577622802105,
+                              "y": 240.88752306292443,
+                              "size": 149.13070059389656,
+                              "link": ""
+                    }
+          ],
+          "connections": [
+                    {
+                              "from": 0,
+                              "to": 1,
+                              "color": "#6c757d",
+                              "id": "conn_0_1"
+                    },
+                    {
+                              "from": 0,
+                              "to": 2,
+                              "color": "#6c757d",
+                              "id": "conn_0_2"
+                    },
+                    {
+                              "from": 205,
+                              "to": 206,
+                              "color": "#6c757d",
+                              "id": "conn_205_206"
+                    },
+                    {
+                              "from": 205,
+                              "to": 207,
+                              "color": "#6c757d",
+                              "id": "conn_205_207"
+                    },
+                    {
+                              "from": 205,
+                              "to": 212,
+                              "color": "#6c757d",
+                              "id": "conn_205_212"
+                    },
+                    {
+                              "from": 205,
+                              "to": 213,
+                              "color": "#6c757d",
+                              "id": "conn_205_213"
+                    },
+                    {
+                              "from": 205,
+                              "to": 214,
+                              "color": "#6c757d",
+                              "id": "conn_205_214"
+                    },
+                    {
+                              "from": 205,
+                              "to": 215,
+                              "color": "#6c757d",
+                              "id": "conn_205_215"
+                    },
+                    {
+                              "from": 216,
+                              "to": 217,
+                              "color": "#6c757d",
+                              "id": "conn_216_217"
+                    },
+                    {
+                              "from": 216,
+                              "to": 218,
+                              "color": "#6c757d",
+                              "id": "conn_216_218"
+                    },
+                    {
+                              "from": 216,
+                              "to": 219,
+                              "color": "#6c757d",
+                              "id": "conn_216_219"
+                    },
+                    {
+                              "from": 216,
+                              "to": 220,
+                              "color": "#6c757d",
+                              "id": "conn_216_220"
+                    },
+                    {
+                              "from": 221,
+                              "to": 222,
+                              "color": "#6c757d",
+                              "id": "conn_221_222"
+                    },
+                    {
+                              "from": 221,
+                              "to": 223,
+                              "color": "#6c757d",
+                              "id": "conn_221_223"
+                    },
+                    {
+                              "from": 221,
+                              "to": 224,
+                              "color": "#6c757d",
+                              "id": "conn_221_224"
+                    },
+                    {
+                              "from": 225,
+                              "to": 226,
+                              "color": "#6c757d",
+                              "id": "conn_225_226"
+                    },
+                    {
+                              "from": 225,
+                              "to": 227,
+                              "color": "#6c757d",
+                              "id": "conn_225_227"
+                    },
+                    {
+                              "from": 225,
+                              "to": 228,
+                              "color": "#6c757d",
+                              "id": "conn_225_228"
+                    },
+                    {
+                              "from": 225,
+                              "to": 229,
+                              "color": "#6c757d",
+                              "id": "conn_225_229"
+                    },
+                    {
+                              "from": 2,
+                              "to": 230,
+                              "color": "#6c757d",
+                              "id": "conn_2_230"
+                    },
+                    {
+                              "from": 2,
+                              "to": 231,
+                              "color": "#6c757d",
+                              "id": "conn_2_231"
+                    }
+          ]
+};
+
+        nodeIdCounter = Math.max(...treeData.nodes.map(n => n.id)) + 1;
+
+        function saveState() {
+            const state = JSON.parse(JSON.stringify(treeData));
+            history = history.slice(0, historyIndex + 1);
+            history.push(state);
+            historyIndex++;
+            if (history.length > 50) {
+                history.shift();
+                historyIndex--;
+            }
+        }
+
+        function initializeTree() {
+            saveState();
+            setupEventListeners();
+            renderTree();
+            // Commencer avec une vue qui montre l'arbre étendu
+            scale = 0.6; // Zoom arrière pour voir plus large
+            centerView();
+        }
+
+        function setupEventListeners() {
+            // Gestion des couleurs
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('color-option')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const parent = e.target.closest('.edit-group');
+                    parent.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    
+                    const input = parent.querySelector('input[type="text"]');
+                    if (input) {
+                        input.value = e.target.dataset.color;
+                    }
+                }
+            });
+
+            document.getElementById('sizeSlider').addEventListener('input', (e) => {
+                document.getElementById('sizeValue').textContent = e.target.value + '%';
+            });
+
+            document.getElementById('fileInput').addEventListener('change', handleFileImport);
+            
+            // Événements minimap
+            setupMinimapEvents();
+        }
+
+        function setupMinimapEvents() {
+            const minimapContent = document.getElementById('minimapContent');
+            const minimapViewport = document.getElementById('minimapViewport');
+            const thumbH = document.getElementById('minimapThumbH');
+            const thumbV = document.getElementById('minimapThumbV');
+            
+            // Clic sur la minimap pour naviguer
+            minimapContent.addEventListener('click', (e) => {
+                if (e.target === minimapViewport) return; // Ignorer les clics sur le viewport
+                
+                const rect = minimapContent.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                // Convertir en coordonnées monde et centrer
+                navigateToMinimapPosition(clickX / 200, clickY / 150);
+            });
+            
+            // Glissement du viewport
+            let isDraggingViewport = false;
+            let viewportDragStart = { x: 0, y: 0 };
+            
+            minimapViewport.addEventListener('mousedown', (e) => {
+                isDraggingViewport = true;
+                viewportDragStart.x = e.clientX;
+                viewportDragStart.y = e.clientY;
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDraggingViewport) return;
+                
+                const deltaX = e.clientX - viewportDragStart.x;
+                const deltaY = e.clientY - viewportDragStart.y;
+                
+                // Convertir en ratio et naviguer
+                const ratioX = deltaX / 200;
+                const ratioY = deltaY / 150;
+                
+                navigateByRatio(ratioX, ratioY);
+                
+                viewportDragStart.x = e.clientX;
+                viewportDragStart.y = e.clientY;
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDraggingViewport = false;
+            });
+            
+            // Glissement des thumbs de scrollbar
+            let isDraggingThumbH = false;
+            let isDraggingThumbV = false;
+            
+            thumbH.addEventListener('mousedown', (e) => {
+                isDraggingThumbH = true;
+                e.preventDefault();
+            });
+            
+            thumbV.addEventListener('mousedown', (e) => {
+                isDraggingThumbV = true;
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDraggingThumbH) {
+                    const rect = thumbH.parentElement.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const ratio = Math.max(0, Math.min(1, clickX / 200));
+                    navigateToMinimapPosition(ratio, null);
+                }
+                
+                if (isDraggingThumbV) {
+                    const rect = thumbV.parentElement.getBoundingClientRect();
+                    const clickY = e.clientY - rect.top;
+                    const ratio = Math.max(0, Math.min(1, clickY / 150));
+                    navigateToMinimapPosition(null, ratio);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDraggingThumbH = false;
+                isDraggingThumbV = false;
+            });
+        }
+
+        function navigateToMinimapPosition(ratioX, ratioY) {
+            if (treeData.nodes.length === 0) return;
+            
+            const minX = Math.min(...treeData.nodes.map(n => n.x)) - 100;
+            const maxX = Math.max(...treeData.nodes.map(n => n.x)) + 100;
+            const minY = Math.min(...treeData.nodes.map(n => n.y)) - 100;
+            const maxY = Math.max(...treeData.nodes.map(n => n.y)) + 100;
+            
+            const treeWidth = maxX - minX;
+            const treeHeight = maxY - minY;
+            
+            if (ratioX !== null) {
+                const targetWorldX = minX + ratioX * treeWidth;
+                translateX = window.innerWidth / 2 - targetWorldX * scale;
+            }
+            
+            if (ratioY !== null) {
+                const targetWorldY = minY + ratioY * treeHeight;
+                translateY = window.innerHeight / 2 - targetWorldY * scale;
+            }
+            
+            updateTransform();
+        }
+
+        function navigateByRatio(deltaRatioX, deltaRatioY) {
+            if (treeData.nodes.length === 0) return;
+            
+            const minX = Math.min(...treeData.nodes.map(n => n.x)) - 100;
+            const maxX = Math.max(...treeData.nodes.map(n => n.x)) + 100;
+            const minY = Math.min(...treeData.nodes.map(n => n.y)) - 100;
+            const maxY = Math.max(...treeData.nodes.map(n => n.y)) + 100;
+            
+            const treeWidth = maxX - minX;
+            const treeHeight = maxY - minY;
+            
+            translateX -= deltaRatioX * treeWidth * scale;
+            translateY -= deltaRatioY * treeHeight * scale;
+            
+            updateTransform();
+        }
+
+        function renderTree() {
+            const container = document.getElementById('tree-container');
+            container.innerHTML = '';
+
+            treeData.connections.forEach(conn => renderConnection(conn));
+            treeData.nodes.forEach(node => renderNode(node));
+            updateTransform(); // Cela va aussi mettre à jour la zone de navigation
+        }
+
+        function renderNode(node) {
+            const container = document.getElementById('tree-container');
+            const nodeEl = document.createElement('div');
+            nodeEl.className = 'node';
+            if (node.link && node.link.trim()) {
+                nodeEl.classList.add('has-link');
+            }
+            nodeEl.id = `node-${node.id}`;
+            nodeEl.style.left = `${node.x}px`;
+            nodeEl.style.top = `${node.y}px`;
+            nodeEl.style.background = node.color;
+            nodeEl.style.transform = `scale(${(node.size || 100) / 100})`;
+            nodeEl.textContent = node.text;
+            
+            // Ajouter les poignées de redimensionnement
+            const handles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+            handles.forEach(position => {
+                const handle = document.createElement('div');
+                handle.className = `resize-handle ${position}`;
+                handle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startNodeResize(e, node, position);
+                });
+                nodeEl.appendChild(handle);
+            });
+            
+            nodeEl.addEventListener('click', (e) => {
+                console.log('Event click noeud déclenché');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Si le nœud a un lien ET qu'on maintient Ctrl/Cmd, ouvrir le lien
+                if (node.link && node.link.trim() && (e.ctrlKey || e.metaKey)) {
+                    openNodeLink(node.link);
+                    return;
+                }
+                
+                // Sinon, comportement normal (sélection/édition)
+                handleNodeClick(node);
+            });
+
+            nodeEl.addEventListener('mousedown', (e) => {
+                console.log('Event mousedown noeud déclenché');
+                if (e.target.classList.contains('resize-handle')) {
+                    return;
+                }
+                if (e.button === 0 && !isLinkMode && !isZoomSelectMode) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startNodeDrag(e, node);
+                }
+            });
+
+            container.appendChild(nodeEl);
+        }
+
+        function openNodeLink(link) {
+            // Vérifier si c'est une URL complète ou un chemin relatif
+            let url = link.trim();
+            
+            if (!url) return;
+            
+            // TOUJOURS ouvrir dans un nouvel onglet pour préserver l'arbre actuel
+            if (!url.match(/^https?:\/\//)) {
+                // Pour les chemins relatifs, construire l'URL relative
+                window.open(url, '_blank');
+            } else {
+                // Pour les URLs complètes, ouvrir dans un nouvel onglet
+                window.open(url, '_blank');
+            }
+        }
+
+        function renderConnection(conn) {
+            const fromNode = treeData.nodes.find(n => n.id === conn.from);
+            const toNode = treeData.nodes.find(n => n.id === conn.to);
+            
+            if (!fromNode || !toNode) return;
+
+            const container = document.getElementById('tree-container');
+            const dx = toNode.x - fromNode.x;
+            const dy = toNode.y - fromNode.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            const connectionEl = document.createElement('div');
+            connectionEl.className = 'connection';
+            connectionEl.id = `connection-${conn.id}`;
+            connectionEl.style.left = `${fromNode.x + 50}px`;
+            connectionEl.style.top = `${fromNode.y + 20}px`;
+            connectionEl.style.width = `${length}px`;
+            connectionEl.style.transform = `rotate(${angle}deg)`;
+            connectionEl.style.background = conn.color || '#6c757d';
+            
+            connectionEl.addEventListener('click', (e) => {
+                console.log('Event click lien déclenché');
+                e.preventDefault();
+                e.stopPropagation();
+                selectLink(conn);
+            });
+            
+            container.appendChild(connectionEl);
+        }
+
+        function startNodeResize(e, node, position) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            saveState();
+            
+            const startMouseX = e.clientX;
+            const startMouseY = e.clientY;
+            const startSize = node.size || 100;
+            
+            function onMouseMove(e) {
+                const deltaX = (e.clientX - startMouseX) / scale;
+                const deltaY = (e.clientY - startMouseY) / scale;
+                
+                let sizeChange = 0;
+                
+                switch(position) {
+                    case 'bottom-right':
+                        sizeChange = (deltaX + deltaY) / 4;
+                        break;
+                    case 'top-left':
+                        sizeChange = -(deltaX + deltaY) / 4;
+                        break;
+                    case 'top-right':
+                        sizeChange = (deltaX - deltaY) / 4;
+                        break;
+                    case 'bottom-left':  
+                        sizeChange = (-deltaX + deltaY) / 4;
+                        break;
+                }
+                
+                const newSize = Math.max(30, Math.min(300, startSize + sizeChange));
+                node.size = newSize;
+                
+                const nodeEl = document.getElementById(`node-${node.id}`);
+                nodeEl.style.transform = `scale(${newSize / 100})`;
+                
+                if (selectedNode && selectedNode.id === node.id) {
+                    document.getElementById('sizeSlider').value = newSize;
+                    document.getElementById('sizeValue').textContent = Math.round(newSize) + '%';
+                }
+            }
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+
+        function handleNodeClick(node) {
+            if (isLinkMode) {
+                if (!linkingFrom) {
+                    linkingFrom = node;
+                    document.getElementById(`node-${node.id}`).classList.add('linkable-node');
+                    updateLinkableNodes();
+                } else if (linkingFrom.id !== node.id) {
+                    const connectionId = `conn_${linkingFrom.id}_${node.id}`;
+                    if (!treeData.connections.find(c => c.from === linkingFrom.id && c.to === node.id)) {
+                        saveState();
+                        treeData.connections.push({ 
+                            from: linkingFrom.id, 
+                            to: node.id, 
+                            color: "#6c757d",
+                            id: connectionId
+                        });
+                        renderTree();
+                    }
+                    exitLinkMode();
+                }
+            } else {
+                selectNode(node);
+            }
+        }
+
+        function selectNode(node) {
+            if (selectedNode) {
+                const oldEl = document.getElementById(`node-${selectedNode.id}`);
+                if (oldEl) oldEl.classList.remove('selected');
+            }
+
+            if (selectedLink) {
+                document.getElementById(`connection-${selectedLink.id}`).classList.remove('selected');
+                selectedLink = null;
+                document.getElementById('linkEditPanel').classList.remove('active');
+            }
+
+            selectedNode = node;
+            document.getElementById(`node-${node.id}`).classList.add('selected');
+            showEditPanel(node);
+        }
+
+        function showEditPanel(node) {
+            document.getElementById('editPanel').classList.add('active');
+            document.getElementById('nodeText').value = node.text;
+            document.getElementById('sizeSlider').value = node.size || 100;
+            document.getElementById('sizeValue').textContent = (node.size || 100) + '%';
+            document.getElementById('customColor').value = node.color || '#6c757d';
+            document.getElementById('nodeLink').value = node.link || '';
+
+            document.querySelectorAll('#editPanel .color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.color === node.color) {
+                    option.classList.add('selected');
+                }
+            });
+        }
+
+        function selectLink(conn) {
+            if (selectedLink) {
+                document.getElementById(`connection-${selectedLink.id}`).classList.remove('selected');
+            }
+
+            if (selectedNode) {
+                document.getElementById(`node-${selectedNode.id}`).classList.remove('selected');
+                selectedNode = null;
+                document.getElementById('editPanel').classList.remove('active');
+            }
+
+            selectedLink = conn;
+            document.getElementById(`connection-${conn.id}`).classList.add('selected');
+            showLinkEditPanel(conn);
+        }
+
+        function showLinkEditPanel(conn) {
+            const panel = document.getElementById('linkEditPanel');
+            panel.classList.add('active');
+            panel.style.left = '50%';
+            panel.style.top = '50%';
+            panel.style.transform = 'translate(-50%, -50%)';
+
+            document.getElementById('linkCustomColor').value = conn.color || '#6c757d';
+
+            document.querySelectorAll('#linkEditPanel .color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.color === conn.color) {
+                    option.classList.add('selected');
+                }
+            });
+        }
+
+        function saveNode() {
+            if (!selectedNode) return;
+            saveState();
+            
+            selectedNode.text = document.getElementById('nodeText').value;
+            selectedNode.size = parseInt(document.getElementById('sizeSlider').value);
+            selectedNode.link = document.getElementById('nodeLink').value.trim();
+            
+            const hexColor = document.getElementById('customColor').value.trim();
+            if (hexColor && hexColor.match(/^#[0-9A-F]{6}$/i)) {
+                selectedNode.color = hexColor;
+            }
+
+            renderTree();
+            selectNode(selectedNode);
+        }
+
+        function saveLinkColor() {
+            if (!selectedLink) return;
+            saveState();
+
+            const hexColor = document.getElementById('linkCustomColor').value.trim();
+            if (hexColor && hexColor.match(/^#[0-9A-F]{6}$/i)) {
+                selectedLink.color = hexColor;
+            }
+
+            renderTree();
+            selectLink(selectedLink);
+        }
+
+        function addChildNode() {
+            if (!selectedNode) return;
+            saveState();
+            
+            const newNode = {
+                id: nodeIdCounter++,
+                text: "Nouveau Nœud",
+                color: "#6c757d",
+                x: selectedNode.x + 150,
+                y: selectedNode.y + 150,
+                size: 100
+            };
+
+            treeData.nodes.push(newNode);
+            treeData.connections.push({
+                from: selectedNode.id,
+                to: newNode.id,
+                color: "#6c757d",
+                id: `conn_${selectedNode.id}_${newNode.id}`
+            });
+            
+            renderTree();
+            selectNode(newNode);
+        }
+
+        function deleteNode() {
+            if (!selectedNode) return;
+
+            // Trouver tous les enfants directs et indirects
+            const allChildren = findAllChildren(selectedNode.id);
+            const directChildren = findDirectChildren(selectedNode.id);
+            
+            let confirmMessage = `Êtes-vous sûr de vouloir supprimer le nœud "${selectedNode.text}" ?`;
+            
+            if (allChildren.length > 0) {
+                confirmMessage += `\n\nCe nœud a ${directChildren.length} enfant(s) direct(s)`;
+                if (allChildren.length > directChildren.length) {
+                    confirmMessage += ` et ${allChildren.length - directChildren.length} enfant(s) indirect(s)`;
+                }
+                confirmMessage += ` (${allChildren.length} au total).`;
+                confirmMessage += `\n\nQue voulez-vous faire ?`;
+                
+                // Utiliser une boîte de dialogue personnalisée
+                showDeleteConfirmDialog(selectedNode, allChildren, directChildren);
+            } else {
+                // Pas d'enfants, suppression simple
+                if (confirm(confirmMessage)) {
+                    performNodeDeletion(selectedNode.id, []);
+                }
+            }
+        }
+
+        function findDirectChildren(nodeId) {
+            return treeData.connections
+                .filter(conn => conn.from === nodeId)
+                .map(conn => conn.to);
+        }
+
+        function findAllChildren(nodeId) {
+            const allChildren = new Set();
+            const toProcess = [nodeId];
+            
+            while (toProcess.length > 0) {
+                const currentId = toProcess.pop();
+                const directChildren = findDirectChildren(currentId);
+                
+                directChildren.forEach(childId => {
+                    if (!allChildren.has(childId)) {
+                        allChildren.add(childId);
+                        toProcess.push(childId);
+                    }
+                });
+            }
+            
+            return Array.from(allChildren);
+        }
+
+        function showDeleteConfirmDialog(nodeToDelete, allChildren, directChildren) {
+            // Créer une boîte de dialogue personnalisée
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #e9ecef;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                z-index: 10000;
+                max-width: 400px;
+                font-family: 'Segoe UI', sans-serif;
+            `;
+            
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 9999;
+            `;
+            
+            dialog.innerHTML = `
+                <h3 style="margin-top: 0; color: #dc3545;">⚠️ Suppression de nœud</h3>
+                <p><strong>Nœud à supprimer :</strong> "${nodeToDelete.text}"</p>
+                <p><strong>Enfants trouvés :</strong> ${allChildren.length} nœud(s)</p>
+                <ul style="margin: 10px 0; color: #6c757d;">
+                    <li>${directChildren.length} enfant(s) direct(s)</li>
+                    <li>${allChildren.length - directChildren.length} enfant(s) indirect(s)</li>
+                </ul>
+                <p style="font-weight: 600;">Que voulez-vous faire ?</p>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="deleteNodeOnly" style="flex: 1; padding: 10px; background: #ffc107; color: #212529; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                        Supprimer seulement ce nœud
+                    </button>
+                    <button id="deleteWithChildren" style="flex: 1; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                        Supprimer avec tous les enfants
+                    </button>
+                    <button id="cancelDelete" style="flex: 1; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                        Annuler
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(dialog);
+            
+            // Gestion des événements
+            document.getElementById('deleteNodeOnly').onclick = () => {
+                performNodeDeletion(nodeToDelete.id, []);
+                document.body.removeChild(overlay);
+                document.body.removeChild(dialog);
+            };
+            
+            document.getElementById('deleteWithChildren').onclick = () => {
+                performNodeDeletion(nodeToDelete.id, allChildren);
+                document.body.removeChild(overlay);
+                document.body.removeChild(dialog);
+            };
+            
+            document.getElementById('cancelDelete').onclick = () => {
+                document.body.removeChild(overlay);
+                document.body.removeChild(dialog);
+            };
+            
+            // Fermer avec Échap
+            const closeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.body.removeChild(dialog);
+                    document.removeEventListener('keydown', closeHandler);
+                }
+            };
+            document.addEventListener('keydown', closeHandler);
+        }
+
+        function performNodeDeletion(nodeId, childrenToDelete) {
+            saveState();
+            
+            // Liste des nœuds à supprimer
+            const nodesToDelete = [nodeId, ...childrenToDelete];
+            
+            // Supprimer toutes les connexions liées aux nœuds à supprimer
+            treeData.connections = treeData.connections.filter(
+                c => !nodesToDelete.includes(c.from) && !nodesToDelete.includes(c.to)
+            );
+            
+            // Supprimer les nœuds
+            treeData.nodes = treeData.nodes.filter(n => !nodesToDelete.includes(n.id));
+            
+            // Nettoyer la sélection
+            selectedNode = null;
+            document.getElementById('editPanel').classList.remove('active');
+            
+            // Rerender
+            renderTree();
+            
+            console.log(`Supprimé: nœud ${nodeId} et ${childrenToDelete.length} enfant(s)`);
+        }
+
+        function deleteLink() {
+            if (!selectedLink) return;
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce lien ?')) {
+                saveState();
+                treeData.connections = treeData.connections.filter(c => c.id !== selectedLink.id);
+                selectedLink = null;
+                document.getElementById('linkEditPanel').classList.remove('active');
+                renderTree();
+            }
+        }
+
+        function addNode() {
+            saveState();
+            const newNode = {
+                id: nodeIdCounter++,
+                text: "Nouveau Nœud",
+                color: "#6c757d",
+                x: 800 + Math.random() * 400 - 200, // Position aléatoire autour du centre
+                y: 400 + Math.random() * 400 - 200,
+                size: 100
+            };
+            treeData.nodes.push(newNode);
+            renderTree();
+            selectNode(newNode);
+        }
+
+        function toggleLinkMode() {
+            isLinkMode = !isLinkMode;
+            const btn = document.getElementById('linkBtn');
+            
+            if (isLinkMode) {
+                btn.textContent = '❌ Annuler Liaison';
+                btn.classList.add('link-mode');
+                document.getElementById('tree-container').style.cursor = 'crosshair';
+            } else {
+                exitLinkMode();
+            }
+        }
+
+        function exitLinkMode() {
+            isLinkMode = false;
+            linkingFrom = null;
+            document.getElementById('linkBtn').textContent = '🔗 Lier Nœuds';
+            document.getElementById('linkBtn').classList.remove('link-mode');
+            document.getElementById('tree-container').style.cursor = 'grab';
+            
+            document.querySelectorAll('.linkable-node').forEach(el => {
+                el.classList.remove('linkable-node');
+            });
+        }
+
+        function updateLinkableNodes() {
+            treeData.nodes.forEach(node => {
+                if (node.id !== linkingFrom.id) {
+                    const el = document.getElementById(`node-${node.id}`);
+                    el.classList.add('linkable-node');
+                }
+            });
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                Object.assign(treeData, JSON.parse(JSON.stringify(history[historyIndex])));
+                selectedNode = null;
+                selectedLink = null;
+                document.getElementById('editPanel').classList.remove('active');
+                document.getElementById('linkEditPanel').classList.remove('active');
+                renderTree();
+            }
+        }
+
+        function zoom100() {
+            scale = 1;
+            centerView();
+        }
+
+        function zoomToFit() {
+            if (treeData.nodes.length === 0) return;
+
+            const container = document.getElementById('tree-container');
+            const containerRect = container.getBoundingClientRect();
+            
+            const padding = 50;
+            const minX = Math.min(...treeData.nodes.map(n => n.x)) - padding;
+            const maxX = Math.max(...treeData.nodes.map(n => n.x)) + padding;
+            const minY = Math.min(...treeData.nodes.map(n => n.y)) - padding;
+            const maxY = Math.max(...treeData.nodes.map(n => n.y)) + padding;
+            
+            const width = maxX - minX;
+            const height = maxY - minY;
+            
+            const scaleX = containerRect.width / width;
+            const scaleY = containerRect.height / height;
+            scale = Math.min(scaleX, scaleY, 3);
+            
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            
+            translateX = containerRect.width / 2 - centerX * scale;
+            translateY = containerRect.height / 2 - centerY * scale;
+            
+            updateTransform();
+        }
+
+        function toggleZoomSelect() {
+            isZoomSelectMode = !isZoomSelectMode;
+            const btn = document.getElementById('zoomSelectBtn');
+            
+            if (isZoomSelectMode) {
+                btn.textContent = '❌ Annuler Sélection';
+                btn.classList.add('zoom-select-mode');
+                document.body.style.cursor = 'crosshair';
+            } else {
+                btn.textContent = '🔲 Sélection Zoom';
+                btn.classList.remove('zoom-select-mode');
+                document.body.style.cursor = 'grab';
+            }
+        }
+
+        function startZoomSelection(e) {
+            isSelecting = true;
+            
+            // Position absolue de la souris sur l'écran
+            selectionStart.x = e.clientX;
+            selectionStart.y = e.clientY;
+            
+            console.log('Début sélection zoom à:', selectionStart.x, selectionStart.y);
+            
+            selectionBox = document.createElement('div');
+            selectionBox.className = 'selection-box';
+            selectionBox.style.left = selectionStart.x + 'px';
+            selectionBox.style.top = selectionStart.y + 'px';
+            selectionBox.style.width = '0px';
+            selectionBox.style.height = '0px';
+            document.body.appendChild(selectionBox);
+        }
+
+        function finishZoomSelection() {
+            if (!selectionBox) return;
+            
+            const boxRect = selectionBox.getBoundingClientRect();
+            console.log('=== ZOOM SÉLECTION DEBUG CORRIGÉ ===');
+            console.log('Rectangle - left:', boxRect.left, 'top:', boxRect.top, 'width:', boxRect.width, 'height:', boxRect.height);
+            
+            if (boxRect.width < 10 || boxRect.height < 10) {
+                console.log('Sélection trop petite, annulation');
+                selectionBox.remove();
+                selectionBox = null;
+                toggleZoomSelect();
+                return;
+            }
+            
+            // Utiliser la fenêtre comme référence au lieu du container transformé
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            console.log('Fenêtre - width:', windowWidth, 'height:', windowHeight);
+            
+            // Coordonnées du rectangle par rapport à la fenêtre (déjà correctes)
+            const centerScreenX = boxRect.left + boxRect.width / 2;
+            const centerScreenY = boxRect.top + boxRect.height / 2;
+            
+            console.log('Centre écran - X:', centerScreenX, 'Y:', centerScreenY);
+            
+            // Convertir le centre écran en coordonnées monde
+            const worldCenterX = (centerScreenX - translateX) / scale;
+            const worldCenterY = (centerScreenY - translateY) / scale;
+            
+            // Convertir les dimensions écran en dimensions monde
+            const worldWidth = boxRect.width / scale;
+            const worldHeight = boxRect.height / scale;
+            
+            console.log('Centre monde - X:', worldCenterX, 'Y:', worldCenterY);
+            console.log('Dimensions monde - width:', worldWidth, 'height:', worldHeight);
+            
+            // Calculer le nouveau zoom pour que la sélection remplisse 80% de l'écran
+            const scaleX = windowWidth * 0.8 / worldWidth;
+            const scaleY = windowHeight * 0.8 / worldHeight;
+            const newScale = Math.min(scaleX, scaleY, 2.0);
+            
+            // Appliquer le nouveau scale (limité)
+            const finalScale = Math.max(newScale, 0.3);
+            
+            // Centrer sur la zone sélectionnée (centre de la fenêtre)
+            const newTranslateX = windowWidth / 2 - worldCenterX * finalScale;
+            const newTranslateY = windowHeight / 2 - worldCenterY * finalScale;
+            
+            console.log('Calculs - scaleX:', scaleX, 'scaleY:', scaleY, 'newScale:', newScale, 'finalScale:', finalScale);
+            console.log('AVANT application - scale:', scale, 'translateX:', translateX, 'translateY:', translateY);
+            
+            // Appliquer les nouvelles valeurs
+            scale = finalScale;
+            translateX = newTranslateX;
+            translateY = newTranslateY;
+            
+            console.log('APRÈS application - scale:', scale, 'translateX:', translateX, 'translateY:', translateY);
+            console.log('=====================================');
+            
+            updateTransform();
+            
+            // Nettoyer
+            selectionBox.remove();
+            selectionBox = null;
+            toggleZoomSelect();
+        }
+
+        function startNodeDrag(e, node) {
+            e.preventDefault();
+            let startX = e.clientX;
+            let startY = e.clientY;
+            let startNodeX = node.x;
+            let startNodeY = node.y;
+
+            function onMouseMove(e) {
+                const dx = (e.clientX - startX) / scale;
+                const dy = (e.clientY - startY) / scale;
+                
+                node.x = startNodeX + dx;
+                node.y = startNodeY + dy;
+                
+                renderTree();
+                if (selectedNode && selectedNode.id === node.id) {
+                    selectNode(node);
+                }
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+
+        function updateTransform() {
+            const container = document.getElementById('tree-container');
+            container.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            document.getElementById('zoomInfo').textContent = `Zoom: ${Math.round(scale * 100)}%`;
+            updateMinimap();
+        }
+
+        function updateMinimap() {
+            if (treeData.nodes.length === 0) return;
+            
+            // Calculer les limites de l'arbre
+            const minX = Math.min(...treeData.nodes.map(n => n.x));
+            const maxX = Math.max(...treeData.nodes.map(n => n.x));
+            const minY = Math.min(...treeData.nodes.map(n => n.y));
+            const maxY = Math.max(...treeData.nodes.map(n => n.y));
+            
+            const padding = 100;
+            const treeMinX = minX - padding;
+            const treeMaxX = maxX + padding;
+            const treeMinY = minY - padding;
+            const treeMaxY = maxY + padding;
+            
+            const treeWidth = treeMaxX - treeMinX;
+            const treeHeight = treeMaxY - treeMinY;
+            
+            // Dimensions de la minimap
+            const minimapWidth = 200;
+            const minimapHeight = 150;
+            
+            // Ratio pour adapter l'arbre à la minimap
+            const scaleX = minimapWidth / treeWidth;
+            const scaleY = minimapHeight / treeHeight;
+            const minimapScale = Math.min(scaleX, scaleY);
+            
+            // Nettoyer la minimap
+            const minimapContent = document.getElementById('minimapContent');
+            const existingNodes = minimapContent.querySelectorAll('.minimap-node, .minimap-connection');
+            existingNodes.forEach(el => el.remove());
+            
+            // Dessiner les connexions
+            treeData.connections.forEach(conn => {
+                const fromNode = treeData.nodes.find(n => n.id === conn.from);
+                const toNode = treeData.nodes.find(n => n.id === conn.to);
+                if (!fromNode || !toNode) return;
+                
+                const fromX = (fromNode.x - treeMinX) * minimapScale;
+                const fromY = (fromNode.y - treeMinY) * minimapScale;
+                const toX = (toNode.x - treeMinX) * minimapScale;
+                const toY = (toNode.y - treeMinY) * minimapScale;
+                
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                const connectionEl = document.createElement('div');
+                connectionEl.className = 'minimap-connection';
+                connectionEl.style.left = fromX + 'px';
+                connectionEl.style.top = fromY + 'px';
+                connectionEl.style.width = length + 'px';
+                connectionEl.style.transform = `rotate(${angle}deg)`;
+                connectionEl.style.background = conn.color || '#6c757d';
+                minimapContent.appendChild(connectionEl);
+            });
+            
+            // Dessiner les nœuds
+            treeData.nodes.forEach(node => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'minimap-node';
+                nodeEl.style.left = (node.x - treeMinX) * minimapScale + 'px';
+                nodeEl.style.top = (node.y - treeMinY) * minimapScale + 'px';
+                nodeEl.style.width = Math.max(4, (node.size || 100) / 100 * 6) + 'px';
+                nodeEl.style.height = Math.max(3, (node.size || 100) / 100 * 4) + 'px';
+                nodeEl.style.background = node.color;
+                minimapContent.appendChild(nodeEl);
+            });
+            
+            // Mettre à jour le viewport
+            updateMinimapViewport(treeMinX, treeMinY, treeWidth, treeHeight, minimapScale);
+            
+            // Mettre à jour les scrollbars
+            updateMinimapScrollbars(treeMinX, treeMinY, treeWidth, treeHeight);
+        }
+
+        function updateMinimapViewport(treeMinX, treeMinY, treeWidth, treeHeight, minimapScale) {
+            const viewport = document.getElementById('minimapViewport');
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Calculer la zone visible en coordonnées monde
+            const visibleMinX = (0 - translateX) / scale;
+            const visibleMinY = (0 - translateY) / scale;
+            const visibleMaxX = (windowWidth - translateX) / scale;
+            const visibleMaxY = (windowHeight - translateY) / scale;
+            
+            // Convertir en coordonnées minimap
+            const viewportX = Math.max(0, (visibleMinX - treeMinX) * minimapScale);
+            const viewportY = Math.max(0, (visibleMinY - treeMinY) * minimapScale);
+            const viewportWidth = Math.min(200, (visibleMaxX - visibleMinX) * minimapScale);
+            const viewportHeight = Math.min(150, (visibleMaxY - visibleMinY) * minimapScale);
+            
+            viewport.style.left = viewportX + 'px';
+            viewport.style.top = viewportY + 'px';
+            viewport.style.width = viewportWidth + 'px';
+            viewport.style.height = viewportHeight + 'px';
+        }
+
+        function updateMinimapScrollbars(treeMinX, treeMinY, treeWidth, treeHeight) {
+            // Calculer la position des thumbs de scrollbar
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Thumb horizontal
+            const thumbH = document.getElementById('minimapThumbH');
+            const visibleRatioH = Math.min(1, windowWidth / scale / treeWidth);
+            const thumbWidthH = Math.max(20, 200 * visibleRatioH);
+            const scrollRatioH = Math.max(0, Math.min(1, -(translateX / scale - treeMinX) / (treeWidth - windowWidth / scale)));
+            const thumbLeftH = (200 - thumbWidthH) * scrollRatioH;
+            
+            thumbH.style.width = thumbWidthH + 'px';
+            thumbH.style.left = thumbLeftH + 'px';
+            
+            // Thumb vertical
+            const thumbV = document.getElementById('minimapThumbV');
+            const visibleRatioV = Math.min(1, windowHeight / scale / treeHeight);
+            const thumbHeightV = Math.max(20, 150 * visibleRatioV);
+            const scrollRatioV = Math.max(0, Math.min(1, -(translateY / scale - treeMinY) / (treeHeight - windowHeight / scale)));
+            const thumbTopV = (150 - thumbHeightV) * scrollRatioV;
+            
+            thumbV.style.height = thumbHeightV + 'px';
+            thumbV.style.top = thumbTopV + 'px';
+        }
+
+        function zoomIn() {
+            scale = Math.min(scale * 1.2, 3);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            scale = Math.max(scale / 1.2, 0.3);
+            updateTransform();
+        }
+
+        function resetView() {
+            centerView();
+        }
+
+        function centerView() {
+            const container = document.getElementById('tree-container');
+            const containerRect = container.getBoundingClientRect();
+            
+            if (treeData.nodes.length === 0) return;
+            
+            const minX = Math.min(...treeData.nodes.map(n => n.x));
+            const maxX = Math.max(...treeData.nodes.map(n => n.x));
+            const minY = Math.min(...treeData.nodes.map(n => n.y));
+            const maxY = Math.max(...treeData.nodes.map(n => n.y));
+            
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            
+            translateX = containerRect.width / 2 - centerX * scale;
+            translateY = containerRect.height / 2 - centerY * scale;
+            
+            updateTransform();
+        }
+
+        function exportTree() {
+            const dataStr = JSON.stringify(treeData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', 'arbre_simplifie.json');
+            linkElement.click();
+        }
+
+        function saveToHTML() {
+            // Créer une copie du HTML actuel avec les données mises à jour
+            const currentHTML = document.documentElement.outerHTML;
+            
+            // Remplacer les données dans le script - AVEC TOUS LES CHAMPS y compris les liens
+            const dataString = JSON.stringify(treeData, null, 12); // Indentation plus grande pour lisibilité
+            const updatedHTML = currentHTML.replace(
+                /const treeData = \{[\s\S]*?\};/,
+                `const treeData = ${dataString};`
+            );
+            
+            // Télécharger le fichier HTML mis à jour
+            const blob = new Blob([updatedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const linkElement = document.createElement('a');
+            linkElement.href = url;
+            linkElement.download = 'arbre_decision_sauvegarde.html';
+            linkElement.click();
+            URL.revokeObjectURL(url);
+            
+            // Vérifier que les liens sont bien inclus dans la sauvegarde
+            const linksCount = treeData.nodes.filter(n => n.link && n.link.trim()).length;
+            const message = linksCount > 0 
+                ? `HTML sauvegardé avec ${linksCount} lien(s) hypertexte ! Votre arbre complet est intégré dans le fichier.`
+                : 'HTML sauvegardé ! Votre arbre est maintenant intégré dans le fichier.';
+            
+            alert(message);
+        }
+
+        function importTree() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.nodes && importedData.connections) {
+                        Object.assign(treeData, importedData);
+                        nodeIdCounter = Math.max(...treeData.nodes.map(n => n.id)) + 1;
+                        saveState();
+                        renderTree();
+                        centerView();
+                        selectedNode = null;
+                        selectedLink = null;
+                        document.getElementById('editPanel').classList.remove('active');
+                        document.getElementById('linkEditPanel').classList.remove('active');
+                    } else {
+                        alert('Format de fichier invalide');
+                    }
+                } catch (error) {
+                    alert('Erreur lors de l\'importation du fichier');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Gestion des événements souris - VERSION SIMPLIFIÉE SANS NAVIGATION-AREA
+        document.addEventListener('mousedown', (e) => {
+            // Vérifier DIRECTEMENT l'élément cliqué
+            const clickedElement = e.target;
+            
+            console.log('=== DIAGNOSTIC CLIC ===');
+            console.log('TagName:', clickedElement.tagName);
+            console.log('ClassName:', clickedElement.className);
+            console.log('ID:', clickedElement.id);
+            console.log('TextContent:', clickedElement.textContent.substring(0, 20));
+            
+            // Vérifications spécifiques
+            const isNodeElement = clickedElement.classList.contains('node');
+            const isInsideNode = clickedElement.closest('.node') !== null;
+            const isConnection = clickedElement.classList.contains('connection');
+            const isHandle = clickedElement.classList.contains('resize-handle');
+            const isButton = clickedElement.closest('.btn') !== null;
+            const isPanel = clickedElement.closest('.edit-panel') !== null || clickedElement.closest('.link-edit-panel') !== null;
+            const isControls = clickedElement.closest('.controls') !== null;
+            
+            console.log('isNodeElement:', isNodeElement);
+            console.log('isInsideNode:', isInsideNode);
+            console.log('isConnection:', isConnection);
+            console.log('isHandle:', isHandle);
+            console.log('isButton:', isButton);
+            console.log('isPanel:', isPanel);
+            console.log('isControls:', isControls);
+            console.log('=====================');
+            
+            // Si c'est un élément interactif, ne pas faire de navigation
+            if (isNodeElement || isInsideNode || isConnection || isHandle || isButton || isPanel || isControls) {
+                console.log('>>> Élément interactif détecté - pas de navigation');
+                return;
+            }
+            
+            console.log('>>> Navigation dans le vide confirmée');
+            
+            // Navigation seulement si c'est vraiment le vide
+            if (isZoomSelectMode) {
+                startZoomSelection(e);
+            } else if (!isLinkMode) {
+                isDragging = true;
+                dragStart.x = e.clientX - translateX;
+                dragStart.y = e.clientY - translateY;
+                
+                // Désélectionner
+                if (selectedNode) {
+                    document.getElementById(`node-${selectedNode.id}`).classList.remove('selected');
+                    selectedNode = null;
+                    document.getElementById('editPanel').classList.remove('active');
+                }
+                if (selectedLink) {
+                    document.getElementById(`connection-${selectedLink.id}`).classList.remove('selected');
+                    selectedLink = null;
+                    document.getElementById('linkEditPanel').classList.remove('active');
+                }
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && !isLinkMode && !isZoomSelectMode) {
+                translateX = e.clientX - dragStart.x;
+                translateY = e.clientY - dragStart.y;
+                updateTransform();
+            } else if (isSelecting && selectionBox) {
+                const currentX = e.clientX;
+                const currentY = e.clientY;
+                
+                const width = Math.abs(currentX - selectionStart.x);
+                const height = Math.abs(currentY - selectionStart.y);
+                const left = Math.min(currentX, selectionStart.x);
+                const top = Math.min(currentY, selectionStart.y);
+                
+                selectionBox.style.left = left + 'px';
+                selectionBox.style.top = top + 'px';
+                selectionBox.style.width = width + 'px';
+                selectionBox.style.height = height + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (isSelecting && selectionBox) {
+                finishZoomSelection();
+            }
+            isDragging = false;
+            isSelecting = false;
+        });
+
+        // Zoom avec molette - VERSION CORRIGÉE
+        document.getElementById('tree-container').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.max(0.3, Math.min(3, scale * delta));
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            translateX = mouseX - (mouseX - translateX) * (newScale / scale);
+            translateY = mouseY - (mouseY - translateY) * (newScale / scale);
+            
+            scale = newScale;
+            updateTransform();
+        });
+
+        // Zoom global avec molette - pour éviter les conflits
+        document.addEventListener('wheel', (e) => {
+            // Vérifier qu'on n'est pas sur la minimap ou les panneaux
+            if (e.target.closest('.minimap') || 
+                e.target.closest('.edit-panel') || 
+                e.target.closest('.link-edit-panel') ||
+                e.target.closest('.controls')) {
+                return; // Laisser les éléments gérer leurs événements
+            }
+            
+            e.preventDefault();
+            
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.max(0.3, Math.min(3, scale * delta));
+            
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            translateX = mouseX - (mouseX - translateX) * (newScale / scale);
+            translateY = mouseY - (mouseY - translateY) * (newScale / scale);
+            
+            scale = newScale;
+            updateTransform();
+        });
+
+        // Raccourcis clavier
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (isLinkMode) {
+                    exitLinkMode();
+                } else if (isZoomSelectMode) {
+                    toggleZoomSelect();
+                } else if (selectedNode) {
+                    document.getElementById(`node-${selectedNode.id}`).classList.remove('selected');
+                    selectedNode = null;
+                    document.getElementById('editPanel').classList.remove('active');
+                } else if (selectedLink) {
+                    document.getElementById(`connection-${selectedLink.id}`).classList.remove('selected');
+                    selectedLink = null;
+                    document.getElementById('linkEditPanel').classList.remove('active');
+                }
+            }
+            
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+        });
+
+        // Initialisation
+        initializeTree();
+    </script>
+
+</body></html>
